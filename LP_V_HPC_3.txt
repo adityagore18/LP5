@@ -81,3 +81,9 @@ int main(){
 
 !g++ -fopenmp main.cpp
 !./a.out
+
+
+
+
+theroy
+"OpenMP is an Application Programming Interface (API) for writing multi-threaded, shared-memory parallel programs in C, C++, and Fortran. It simplifies parallel programming by providing compiler directives, runtime library routines, and environment variables. OpenMP is designed to be portable and scalable, allowing developers to leverage multiple cores and processors on shared-memory systems"
