@@ -1,0 +1,137 @@
+%%writefile main.cpp
+#include<iostream>
+#include<vector>
+#include<queue>
+#include<omp.h>
+
+using namespace std;
+
+class Graph{
+   int v;
+   vector<vector<int>> adj;
+   public :
+   Graph(int v):v(v),adj(v){}
+
+   void addEdge(int i,int j){
+      adj[i].push_back(j);
+      adj[j].push_back(i);
+   }
+   void parallelDFs(int startVertex){
+    vector<bool> visited(v);
+    recurr(startVertex,visited);
+
+   }
+
+
+   void recurr(int v ,vector<bool> &visited){
+    visited[v]=true;
+    cout<<v<<"\t";
+    #pragma omp parallel for
+    for(int i=0;i<adj[v].size();i++){
+      int n=adj[v][i];
+      if(!visited[n]){
+        recurr(n,visited);
+      }
+    }
+   }
+
+   void parallelBFS(int startVertex){
+    vector<bool> visited(v);
+    queue<int> q;
+    visited[startVertex]=true;
+    q.push(startVertex);
+    while(!q.empty()){
+      int v=q.front();
+      q.pop();
+      cout<<v<<"\t";
+      #pragma omp parallel for
+      for(int i=0;i<adj[v].size();i++){
+        int n=adj[v][i];
+        if(!visited[n]){
+          visited[n]=true;
+          q.push(n);
+       }
+      }
+    }
+   }
+
+};
+
+int main(){
+  Graph g(7);
+  g.addEdge(0,1);
+  g.addEdge(0,2);
+  g.addEdge(1,3);
+  g.addEdge(1,4);
+  g.addEdge(2,5);
+  g.addEdge(2,6);
+
+  g.parallelBFS(0);
+  cout<<"\n";
+  g.parallelDFs(0);
+  return 0;
+}
+
+
+!g++ main.cpp -fopenmp
+!./a.out
+
+
+"""# prompt: write what is openmp and its command for parrallelism like in above we used like pragma omp parallel for theroey not write code give more theory for open mp
+
+OpenMP (Open Multi-Processing) is an API that supports multi-platform shared-memory multiprocessing programming in C, C++, and Fortran.  It provides a portable, scalable model for developers to express parallelism within their applications.  Instead of relying on complex message-passing paradigms, OpenMP leverages the shared memory architecture of multi-core processors.  This means that multiple threads can access the same memory space, simplifying data sharing and synchronization.
+
+Here's a breakdown of key OpenMP concepts and how they relate to parallelism:
+
+**1. Shared Memory Model:**
+
+OpenMP assumes a shared memory model, where all threads have access to the same memory locations. This simplifies data sharing between threads but requires careful management of race conditions and data dependencies.
+
+**2. Fork-Join Parallelism:**
+
+OpenMP programs typically execute in a fork-join model.  The master thread starts the program. When a parallel region is encountered, the master thread forks into a team of threads. These threads work concurrently.  After the parallel region, the threads join back to the master thread.  This model provides a structured approach to parallelization.
+
+**3. Parallel Regions:**
+
+The `#pragma omp parallel` directive defines a parallel region in your code.  Within this region, multiple threads will execute the enclosed code block concurrently.
+
+**4. Work-Sharing Constructs:**
+
+OpenMP provides several work-sharing constructs to distribute the work among the threads. These include:
+
+* `#pragma omp parallel for`: This distributes loop iterations among the threads in the current team.  It's crucial for parallelizing loops. The compiler attempts to divide loop iterations equally among threads.
+
+* `#pragma omp parallel sections`: This divides a set of sections among the threads.  Each thread executes one section.  Useful when you have different tasks that can be executed independently.
+
+* `#pragma omp single`: Ensures that only one thread executes the enclosed code block within a parallel region.  Useful for operations that should not be performed concurrently, such as printing to the console or updating shared variables in a specific order.
+
+
+**5. Data Environment:**
+
+OpenMP allows you to specify how variables are shared or private among threads:
+
+* `private`: Each thread has its own copy of the variable. Changes made by one thread don't affect other threads.
+
+* `shared`: All threads share the same memory location for the variable.  Changes made by one thread are visible to other threads. This requires careful consideration of race conditions.
+
+* `firstprivate`: Like `private`, but the thread's copy is initialized with the value of the variable in the master thread.
+
+* `lastprivate`: Similar to `private`, but at the end of the parallel region, the master thread's copy of the variable is updated with the value from the last thread to execute the block.
+
+
+**6. Synchronization:**
+
+Synchronization is crucial in OpenMP to manage shared resources.  OpenMP provides various synchronization mechanisms, such as:
+
+* `critical`: Only one thread at a time can execute the code within a `critical` section. This is a common way to protect shared variables from race conditions.
+
+* `atomic`: Used for atomic updates of shared variables, avoiding the need for a `critical` section in simple cases.
+
+* `barrier`: All threads in a team must reach a `barrier` before any thread can continue execution.  This ensures that all threads complete a certain stage of computation before moving to the next.
+
+**`#pragma omp parallel for` in detail:**
+
+In the provided code, `#pragma omp parallel for` is used to parallelize the loops within the Depth First Search (DFS) and Breadth First Search (BFS) functions.  Each thread in the team processes a portion of the loop iterations, effectively exploring different branches of the graph concurrently. However, there are subtle issues regarding race conditions (modifying the `visited` array) in the example code.  Adding a critical section to protect this shared resource, or using atomic operations (if appropriate), could rectify these issues.
+
+The efficiency of `#pragma omp parallel for` depends on the loop structure, data dependencies, and overhead of parallelization.  For loops with high iteration counts and minimal data dependencies, this construct often leads to significant performance gains.  In contrast, tightly coupled loops with dependencies might not benefit from parallelization or may require different synchronization techniques to correctly avoid race conditions."""
+

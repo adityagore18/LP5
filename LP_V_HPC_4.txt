@@ -1,0 +1,110 @@
+%%writefile main.cpp
+
+#include<iostream>
+#include<omp.h>
+
+using namespace std;
+
+void merge(int arr[],int low,int end,int mid ){
+   int arr_cpy[end-low+1];
+   int i=low;
+   int j=mid+1;
+   int k=0;
+
+   while(i<=mid && j<=end){
+       if(arr[i]<arr[j]){
+           arr_cpy[k]=arr[i];
+           i++;
+       }
+       else{
+           arr_cpy[k]=arr[j];
+           j++;
+       }
+       k++;
+   }
+
+   while(i<=mid){
+       arr_cpy[k]=arr[i];
+       i++;
+       k++;
+   }
+
+   while(j<=end){
+       arr_cpy[k]=arr[j];
+       j++;
+       k++;
+   }
+
+   for(int i=low;i<=end;i++){
+       arr[i]=arr_cpy[i-low];
+   }
+}
+
+void dispalay(int arr[],int n){
+    for(int i=0;i<n;i++){
+        cout<<arr[i]<<" ";
+    }
+    cout<<endl;
+}
+
+void parallelMergeSort(int arr[], int low, int high) {
+    if (low < high) {
+        int mid = (low + high) / 2;
+        #pragma omp parallel sections
+        {
+            #pragma omp section
+            {
+                parallelMergeSort(arr, low, mid);
+            }
+            #pragma omp section
+            {
+                parallelMergeSort(arr, mid + 1, high);
+            }
+        }
+        merge(arr, low, high, mid);
+    }
+}
+
+
+void mergeSort(int arr[],int low,int end){
+    if(low>=end){
+        return;
+    }
+    int mid=(low+end)/2;
+    mergeSort(arr,low,mid);
+    mergeSort(arr,mid+1,end);
+    merge(arr,low,end,mid);
+  }
+
+
+
+
+int main(){
+
+  int arr[]={2,4,12,5,6,8,15,1,3,5,9};
+  int n=11; //Corrected array size
+  dispalay(arr,n);
+  mergeSort(arr,0,n-1) ;
+  dispalay(arr,n);
+
+
+  int arr1[]={2,4,12,5,6,8,15,1,3,5,9};
+  int n1=11; //Corrected array size
+  parallelMergeSort(arr1,0,n1-1);
+  dispalay(arr1,n1);
+ return 0;
+
+}
+
+!g++ main.cpp
+!./a.out
+
+
+
+""# prompt: in above code explain pragma omp section explain what exact it do
+
+
+This pragma directive creates a parallel region where the enclosed sections are executed in parallel by different threads.  Crucially, it's not a work-sharing construct like `#pragma omp for` or `#pragma omp single`.  Instead, it creates independent sections of code that will run concurrently.
+
+In the provided code, there are two sections:
+""

@@ -1,0 +1,61 @@
+%%writefile vec_add.cu
+#include<iostream>
+#include<cuda_runtime.h>
+#include<cstdlib>
+
+using namespace std;
+
+__global__ void add(int *a,int *b,int *c,int n){
+  int i = threadIdx.x;
+  if(i<n) c[i] =a[i]+b[i];
+}
+
+void fill(int *m,int n){
+  for(int i=0;i<n;i++) m[i]=rand()%10;
+}
+
+void print(int *m,int n){
+  for(int i=0;i<n;i++) cout<<m[i]<<" ";
+}
+
+int main(){
+  const int n=5;
+  const int bytes = n*sizeof(int);
+
+  int A[n],B[n],C[n];
+
+  int *dA,*dB,*dC;
+
+  fill(A,n);
+  fill(B,n);
+
+  cudaMalloc(&dA,bytes);
+  cudaMalloc(&dB,bytes);
+  cudaMalloc(&dC,bytes);
+
+  cudaMemcpy(dA,A,bytes,cudaMemcpyHostToDevice);
+  cudaMemcpy(dB,B,bytes,cudaMemcpyHostToDevice);
+
+  add<<<1,n>>>(dA,dB,dC,n);
+
+  cudaMemcpy(C,dC,bytes,cudaMemcpyDeviceToHost);
+
+  print(A,n);
+  cout<<endl;
+  print(B,n);
+  cout<<endl;
+  print(C,n);
+  cout<<endl;
+
+  cudaFree(dA);
+  cudaFree(dB);
+  cudaFree(dC);
+
+  return 0;
+
+}
+
+
+!nvcc -arch=sm_75 vec_add.cu -o vec_add
+
+!./vec_add
