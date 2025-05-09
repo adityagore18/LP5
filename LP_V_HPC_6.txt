@@ -59,3 +59,23 @@ int main(){
 !nvcc -arch=sm_75 vec_add.cu -o vec_add
 
 !./vec_add
+
+
+Theroy
+"In this article, we will cover the overview of CUDA programming and mainly focus on the concept of CUDA requirement and we will also discuss the execution model of CUDA. Finally, we will see the application. Let us discuss it one by one.
+
+CUDA stands for Compute Unified Device Architecture. It is an extension of C/C++ programming. CUDA is a programming language that uses the Graphical Processing Unit (GPU). It is a parallel computing platform and an API (Application Programming Interface) model, Compute Unified Device Architecture was developed by Nvidia. This allows computations to be performed in parallel while providing well-formed speed. Using CUDA, one can harness the power of the Nvidia GPU to perform common computing tasks, such as processing matrices and other linear algebra operations, rather than simply performing graphical calculations."
+"How CUDA works?
+GPUs run one kernel (a group of tasks) at a time.
+Each kernel consists of blocks, which are independent groups of ALUs.
+Each block contains threads, which are levels of computation.
+The threads in each block typically work together to calculate a value.
+Threads in the same block can share memory.
+In CUDA, sending information from the CPU to the GPU is often the most typical part of the computation.
+For each thread, local memory is the fastest, followed by shared memory, global, static, and texture memory the slowest.
+Typical CUDA Program flow
+Load data into CPU memory
+Copy data from CPU to GPU memory – e.g., cudaMemcpy(…, cudaMemcpyHostToDevice)
+Call GPU kernel using device variable – e.g., kernel<<<>>> (gpuVar)
+Copy results from GPU to CPU memory – e.g., cudaMemcpy(.., cudaMemcpyDeviceToHost)
+Use results on CPU"
